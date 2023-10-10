@@ -8,13 +8,14 @@ struct compare_edges {
     }
 };
 
-int prim (int source, int n, vector<vector<pair<int, int>>> &adj)
+vector<pair<int, int>> prim (int n, vector<vector<pair<int, int>>> &adj, int &total)
 {
-    int total = 0;
+    int source = 1;
     
     vector<bool> visited (n + 1, false);
     vector<int> cost(n + 1, INT_MAX);
     vector<int> prev(n + 1, -1);
+    vector<pair<int,int>> mst;
     priority_queue<pair<int,int>, vector<pair<int,int>>, compare_edges> known_edges;
 
     cost[source] = 0;
@@ -40,18 +41,20 @@ int prim (int source, int n, vector<vector<pair<int, int>>> &adj)
         }
 
     }
-    for(int i = 1; i <= n; i++)
+    for(int i = 2; i <= n; i++)
     {
+        mst.push_back(make_pair(i, prev[i]));
         total += cost[i];
     }
 
-    return total;
+    return mst;
 
 }
 
 int main()
 {
     int n, m;
+    int total = 0;
     cin >> n >> m;
     vector<vector<pair<int, int>>> adj(n + 1);
 
@@ -62,7 +65,13 @@ int main()
         adj[u].push_back({v, weight});
         adj[v].push_back({u, weight});
     }
-
-    cout << prim(1, n, adj)<<endl;
+    
+    for(auto i : prim(n, adj, total))
+    {
+        cout<<'('<<i.first<<", "<<i.second<<") ";
+    }
+    cout<<endl;
+    cout<<total<<endl;
+    
     return 0;
 }
