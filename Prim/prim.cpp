@@ -8,10 +8,8 @@ struct compare_edges {
     }
 };
 
-vector<pair<int, int>> prim (int n, vector<vector<pair<int, int>>> &adj, int &total)
+vector<pair<int, int>> prim (int source, int n, vector<vector<pair<int, int>>> &adj, int &total)
 {
-    int source = 1;
-    
     vector<bool> visited (n + 1, false);
     vector<int> cost(n + 1, INT_MAX);
     vector<int> prev(n + 1, -1);
@@ -51,27 +49,87 @@ vector<pair<int, int>> prim (int n, vector<vector<pair<int, int>>> &adj, int &to
 
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    int n, m;
-    int total = 0;
-    cin >> n >> m;
-    vector<vector<pair<int, int>>> adj(n + 1);
+    string in = "";
+    string out = "";
+    bool ans = false;
+    int init = 1;
 
-    for(int i = 0; i < m; i++)
-    {
-        int u, v, weight;
-        cin >> u >> v >> weight;
-        adj[u].push_back({v, weight});
-        adj[v].push_back({u, weight});
+    for (int i = 1; i < argc; i++){
+        if (strcmp(argv[i], "-h") == 0){
+            cout << "Help:" << endl;
+            cout << "-h: mostra o help" << endl;
+            cout << "-o <arquivo>: redireciona a saida para o 'arquivo'" << endl;
+            cout << "-f <arquivo>: indica o 'arquivo' que contém o grafo de entrada" << endl;
+            cout << "-s: mostra a solução (em ordem crescente)" << endl;
+            cout << "-i: vértice inicial (para o algoritmo de Prim)" << endl;
+            return 0;
+        }
+        else if (strcmp(argv[i], "-o") == 0 && i < argc - 1){
+            out = argv[++i];
+        }
+        else if (strcmp(argv[i], "-f") == 0 && i < argc - 1){
+            in = argv[++i];
+        }
+        else if (strcmp(argv[i], "-s") == 0){
+            ans = true;
+        }
+        else if (strcmp(argv[i], "-i") == 0 && i < argc - 1){
+            init = atoi(argv[++i]);
+        }
     }
-    
-    for(auto i : prim(n, adj, total))
-    {
-        cout<<'('<<i.first<<", "<<i.second<<") ";
+
+    if (in == ""){
+        cerr << "No input file specified. Use the -f parameter." << endl;
+        return 1;
     }
-    cout<<endl;
-    cout<<total<<endl;
-    
+
+    ifstream fin(in);
+    if (!fin){
+        cerr << "Could not open input file: " << in << endl;
+        return 1;
+    }
+
+    int N, m;
+    fin >> N >> m;
+    vector<vector<pair<int, int>>> adj(N + 1);
+
+    for (int i = 0; i < m; i++){
+        int a, b, wt;
+        fin >> a >> b >> wt;
+        adj[a].push_back({b, wt});
+        adj[b].push_back({a, wt});
+    }
+
+    fin.close();
+
+    int minimum_cost = 0;
+    vector<pair<int, int>> result = prim(init, N, adj, minimum_cost);
+
+    if (!(out == "")){
+        ofstream fout(out);
+        if (!fout){
+            cerr << "Could not open output file: " << out << endl;
+            return 1;
+        }
+        if (ans){
+            for (auto sample : result)
+                fout << "(" << sample.second << "," << sample.first << ") ";
+        }
+        else{
+            fout << " " << minimum_cost << endl;
+        }
+        fout.close();
+    }
+
+    if(ans){
+        for (auto sample : result)
+            cout << "(" << sample.second << "," << sample.first << ") ";
+    }
+    else{
+        cout << " " << minimum_cost << endl;
+    }
+
     return 0;
 }
