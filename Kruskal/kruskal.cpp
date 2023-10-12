@@ -14,6 +14,124 @@ struct compare_edges
 
 typedef priority_queue<Edge, vector<Edge>, compare_edges>  Queue_Edges; 
 
+int find(vector <int> &father, int vertex);
+vector<pair<int, int>> kruskal (int n, Queue_Edges &edges, int &total);
+void print_command(string command, string description);
+
+int main(int argc, char *argv[])
+{
+    string input_file = "";
+    string output_file = "";
+    int show_answer = 0;
+
+    if (argc == 1)
+    {
+        cerr << "Nenhum argumento especificado. Digite -h para exibir o help" << endl;
+        return 1;
+    }
+
+    for (int i = 1; i < argc; i++)
+    {
+        int show_help = strcmp(argv[i], "-h") == 0 && i < argc - 1;
+        int input_file_exists = strcmp(argv[i], "-f") == 0 && i < argc - 1;
+        int output_file_exists = strcmp(argv[i], "-o") == 0 && i < argc - 1;
+        
+
+        if (show_help)
+        {
+            cout << "Help:" << endl;
+            print_command("-h", "mostra o help");
+            print_command("-o <arquivo>", "redireciona a saida para o arquivo");
+            print_command("-f <arquivo>", "indica o arquivo que contém o grafo de entrada");
+            print_command("-s", "mostra a solução");
+            
+            return 0;
+        }
+        
+        else if (output_file_exists)
+        {
+            output_file = argv[++i];
+        }
+        
+        else if (input_file_exists)
+        {
+            input_file = argv[++i];
+        }
+        
+        else if ( strcmp(argv[i], "-s") == 0) 
+        {
+            show_answer = 1;
+        }
+    }
+
+    if (input_file == "")
+    {
+        cerr << "Arquivo de entrada não especificado. Use -f <arquivo> ou digite -h para exibir o help" << endl;
+        return 1;
+    }
+
+    ifstream fin(input_file);
+
+    if (not fin)
+    {
+        cerr << "Não foi possível abrir o arquivo de entrada: " << input_file << endl;
+        return 1;
+    }
+
+    int N, m;
+    fin >> N >> m;
+    Queue_Edges adj;
+
+    
+    for (int i = 1; i <= m; i++)
+    {
+        int a, b, wt;
+        fin >> a >> b >> wt;
+        adj.push({{a, b}, wt});
+    }
+
+    fin.close();
+
+    int total = 0;
+    
+    vector<pair<int, int>> vertex = kruskal(N, adj, total);
+
+    if (output_file != ""){
+        ofstream fout(output_file);
+
+        if (!fout)
+        {
+            cerr << "Não foi possível abrir o arquivo de saída: " << output_file << endl;
+            return 1;
+        }
+
+        if (show_answer)
+        {
+            for (auto sample : vertex)
+                fout << "(" << sample.second << "," << sample.first << ") ";
+        }
+        
+        else
+        {
+            fout << " " << total<< endl;
+        }
+        
+        fout.close();
+    }
+
+    if(show_answer)
+    {
+        for (auto sample : vertex)
+            cout << "(" << sample.second << "," << sample.first << ") ";
+    }
+    
+    else
+    {
+        cout << " " << total << endl;
+    }
+        
+    return 0;
+}
 
 int find(vector <int> &father, int vertex)
 {
@@ -37,6 +155,7 @@ void union_find(vector<int> &father, vector<int> &rank, int x, int y)
             rank[x]++;
         }
     }
+
     else 
     {
         father[x] = y;
@@ -75,91 +194,8 @@ vector<pair<int, int>> kruskal (int n, Queue_Edges &edges, int &total)
     return tree;
 }
 
-int main(int argc, char *argv[])
+
+void print_command(string command, string description)
 {
-    string input_file = "";
-    string output_file = "";
-    bool ans = false;
-
-    for (int i = 1; i < argc; i++)
-    {
-        if (strcmp(argv[i], "-h") == 0)
-        {
-            cout << "Help:" << endl;
-            cout << "-h: mostra o help" << endl;
-            cout << "-o <arquivo>: redireciona a saida para o 'arquivo'" << endl;
-            cout << "-f <arquivo>: indica o 'arquivo' que contém o grafo de entrada" << endl;
-            cout << "-s: mostra a solução (em ordem crescente)" << endl;
-            return 0;
-        }
-        else if (strcmp(argv[i], "-o") == 0 && i < argc - 1)
-        {
-            output_file = argv[++i];
-        }
-        else if (strcmp(argv[i], "-f") == 0 && i < argc - 1)
-        {
-            input_file = argv[++i];
-        }
-        else if (strcmp(argv[i], "-s") == 0)
-        {
-            ans = true;
-        }
-    }
-
-    if (input_file == "")
-    {
-        cerr << "No input file specified. Use the -f parameter." << endl;
-        return 1;
-    }
-
-    ifstream fin(input_file);
-    if (!fin)
-    {
-        cerr << "Could not open input file: " << input_file << endl;
-        return 1;
-    }
-
-
-    int N, m;
-    fin >> N >> m;
-    Queue_Edges arestas;
-
-    int a, b, wt;
-    for (int i = 1; i <= m; i++)
-    {
-        fin >> a >> b >> wt;
-        arestas.push({{a, b}, wt});
-    }
-
-    fin.close();
-
-    int total = 0;
-    
-    vector<pair<int, int>> vertex = kruskal(N, arestas, total);
-
-    if (!(output_file == "")){
-        ofstream fout(output_file);
-        if (!fout){
-            cerr << "Could not open output file: " << output_file << endl;
-            return 1;
-        }
-        if (ans){
-            for (auto sample : vertex)
-                fout << "(" << sample.second << "," << sample.first << ") ";
-        }
-        else{
-            fout << " " << total<< endl;
-        }
-        fout.close();
-    }
-
-    if(ans){
-        for (auto sample : vertex)
-            cout << "(" << sample.second << "," << sample.first << ") ";
-    }
-    else{
-        cout << " " << total << endl;
-    }
-        
-    return 0;
+    cout << left << setw(14) << command << ':' << description << endl;
 }
